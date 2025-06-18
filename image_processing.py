@@ -13,16 +13,24 @@ def reduce_intensity_levels(image, num_levels):
     Returns:
         Image with reduced intensity levels
     """
-    # Step size for quantization
     step = 256 // num_levels
-
-    # Create lookup table
     lookup_table = np.zeros(256, dtype=np.uint8)
     for i in range(256):
         lookup_table[i] = (i // step) * step
-
-    # Apply lookup table to image
     return cv2.LUT(image, lookup_table)
+
+def spatial_averaging(image, kernel_size):
+    """
+    Apply average blur to an image using the given kernel size.
+
+    Args:
+        image: Grayscale input image
+        kernel_size: Size of the averaging kernel (e.g., 3 for 3x3)
+
+    Returns:
+        Blurred image
+    """
+    return cv2.blur(image, (kernel_size, kernel_size))
 
 def main():
     # Load image
@@ -36,24 +44,40 @@ def main():
     # Convert to grayscale
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Ask for intensity level
-    num_levels = int(input("Enter number of intensity levels (power of 2, e.g., 2, 4, 8, 16, 32, 64, 128, 256): "))
+    # --- Part 1: Reduce intensity levels ---
+    num_levels = int(input("Enter number of intensity levels (power of 2, e.g., 2, 4, 8...): "))
     if num_levels not in [2, 4, 8, 16, 32, 64, 128, 256]:
         print("Invalid input! Must be a power of 2 between 2 and 256.")
         return
-
-    # Process image
     reduced_image = reduce_intensity_levels(gray_image, num_levels)
 
-    # Show results
-    plt.figure(figsize=(10, 4))
-    plt.subplot(1, 2, 1)
-    plt.imshow(gray_image, cmap='gray')
-    plt.title('Original Grayscale Image')
+    # --- Part 2: Spatial averaging ---
+    avg_3x3 = spatial_averaging(gray_image, 3)
+    avg_10x10 = spatial_averaging(gray_image, 10)
+    avg_20x20 = spatial_averaging(gray_image, 20)
 
-    plt.subplot(1, 2, 2)
+    # Show results
+    plt.figure(figsize=(12, 8))
+
+    plt.subplot(2, 3, 1)
+    plt.imshow(gray_image, cmap='gray')
+    plt.title('Original Grayscale')
+
+    plt.subplot(2, 3, 2)
     plt.imshow(reduced_image, cmap='gray')
     plt.title(f'Reduced to {num_levels} Levels')
+
+    plt.subplot(2, 3, 4)
+    plt.imshow(avg_3x3, cmap='gray')
+    plt.title('3x3 Average Blur')
+
+    plt.subplot(2, 3, 5)
+    plt.imshow(avg_10x10, cmap='gray')
+    plt.title('10x10 Average Blur')
+
+    plt.subplot(2, 3, 6)
+    plt.imshow(avg_20x20, cmap='gray')
+    plt.title('20x20 Average Blur')
 
     plt.tight_layout()
     plt.show()
